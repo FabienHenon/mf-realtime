@@ -1,0 +1,42 @@
+{
+  "name": "mf-realtime",
+  "version": "1.0.0",
+  "description": "Realtime to use with maestro",
+  "main": "dist/realtime.js",
+  "scripts": {
+    "build": "rollup -c",
+    "start": "rollup -c -w",
+    "test": "exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/calions-app/mf-realtime.git"
+  },
+  "author": "Calions app",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/calions-app/mf-realtime/issues"
+  },
+  "homepage": "https://github.com/calions-app/mf-realtime#readme",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "path": "^0.12.7",
+    "phoenix": "^1.4.11"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.6.4",
+    "@babel/plugin-proposal-class-properties": "^7.7.4",
+    "@babel/plugin-proposal-json-strings": "^7.7.4",
+    "@babel/plugin-syntax-dynamic-import": "^7.7.4",
+    "@babel/plugin-syntax-import-meta": "^7.7.4",
+    "@babel/preset-env": "^7.6.3",
+    "prettier": "^1.18.2",
+    "rollup": "^1.25.2",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-clean": "^1.0.0",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-replace": "^2.2.0",
+    "rollup-plugin-terser": "^5.1.2"
+  }
+}
