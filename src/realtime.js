@@ -1,20 +1,15 @@
 import RealtimeDispatcher from './components/realtime_dispatcher';
-import { getCookie } from './helpers/cookie_helper';
 
-export const startRealtime = ({ sessionCookieName, url, events }) => {
+export const startRealtime = ({ socketSessionId, url, events }) => {
   window.Realtime = new RealtimeDispatcher({ url, events });
 
-  const socketSessionCookie = getCookie(sessionCookieName);
-
-  if (socketSessionCookie) {
-    window.Realtime.subscribeToTopic(`session:${socketSessionCookie}`);
+  if (socketSessionId) {
+    window.Realtime.subscribeToTopic(`session:${socketSessionId}`);
   }
 };
 
-export const stopRealtime = ({ sessionCookieName }) => {
-  const socketSessionCookie = getCookie(sessionCookieName);
-
-  if (socketSessionCookie) {
-    window.Realtime.unsubscribeFromTopic(`session:${socketSessionCookie}`);
+export const stopRealtime = ({ socketSessionId }) => {
+  if (socketSessionId) {
+    window.Realtime.unsubscribeFromTopic(`session:${socketSessionId}`);
   }
 };
