@@ -8,7 +8,7 @@ Realtime package to use with mf-maestro
 
 ```js
 startRealtime({
-    sessionCookieName: "session_cookie_name",
+    socketSessionId: "socketSessionId",
     url: `/socket`,
     events: events      // on, emit, removeListener
 });
@@ -18,6 +18,12 @@ startRealtime({
 
 ```js
 stopRealtime({
-    sessionCookieName: "session_cookie_name"
+    socketSessionId: "socketSessionId"
 });
+```
+
+## Build
+
+```
+$ npm run build
 ```
