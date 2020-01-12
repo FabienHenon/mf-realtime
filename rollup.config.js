@@ -42,7 +42,8 @@ export default {
   input: 'src/realtime.js',
   output: {
     file: outputFile,
-    format: 'iife',
+    format: 'umd',
+    name: 'MfRealtime',
     sourcemap: true,
   },
   plugins,
