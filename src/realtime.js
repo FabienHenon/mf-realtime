@@ -20,6 +20,14 @@ export const updateSocketSessionId = (socketSessionId) => {
   }
 };
 
+export const removeSocketSessionId = () => {
+  if (window.Realtime.getSocketSessionTopic()) {
+    window.Realtime.unsubscribeFromTopic(window.Realtime.getSocketSessionTopic());
+  }
+
+  window.Realtime.setSocketSessionId(null);
+};
+
 export const stopRealtime = () => {
   if (window.Realtime.getSocketSessionTopic()) {
     window.Realtime.unsubscribeFromTopic(window.Realtime.getSocketSessionTopic());
