@@ -1,15 +1,28 @@
 import { Socket } from 'phoenix';
 
 class RealtimeDispatcher {
-  constructor({ url, events }) {
+  constructor({ url, events, socketSessionId }) {
     this.socket = new Socket(url);
     this.events = events;
     this.socket.connect();
     this.connectedChannels = {};
     this.connectedGroupRefs = {};
+    this.socketSessionId = socketSessionId;
 
     this.events.on('realtime:subscribe-topic', (({ topic }, groupRef) => this.subscribeToTopic(topic, groupRef)));
     this.events.on('realtime:unsubscribe-topic', (({ topic }, groupRef) => this.unsubscribeFromTopic(topic, groupRef)));
+  }
+
+  setSocketSessionId(socketSessionId) {
+    this.socketSessionId = socketSessionId;
+  }
+
+  getSocketSessionId() {
+    return this.socketSessionId;
+  }
+
+  getSocketSessionTopic() {
+    return this.socketSessionId ? `session:${this.socketSessionId}` : null;
   }
 
   isSubscribedToChannel(topicName) {
@@ -155,12 +168,13 @@ class RealtimeDispatcher {
   }
 
   onMessage(topic, messagePayload) {
-    console.log("RealtimeDispatcher#onMessage: ", topic, messagePayload);
+    const realTopic = topic == this.getSocketSessionTopic() ? "session:current-session" : topic;
+    console.log("RealtimeDispatcher#onMessage: ", realTopic, messagePayload);
     switch (messagePayload.type) {
       case 'welcome':
         break;
       case 'notify':
-        this.events.emit(topic, {
+        this.events.emit(realTopic, {
           data: messagePayload.data,
           event: messagePayload.event
         });
