@@ -175,12 +175,12 @@ class RealtimeDispatcher {
         break;
       case 'notify':
         this.events.emit(realTopic, {
-          data: messagePayload.data,
+          metadata: messagePayload.metadata,
           event: messagePayload.event
         });
         break;
       default:
-        console.log('Unexpected realtime message: ', data);
+        console.log('Unexpected realtime message: ', messagePayload.metadata);
     }
   }
 }
