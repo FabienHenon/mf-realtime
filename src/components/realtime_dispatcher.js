@@ -1,4 +1,4 @@
-import { Socket } from 'phoenix';
+import { Socket } from "phoenix";
 
 class RealtimeDispatcher {
   constructor({ url, events, socketSessionId }) {
@@ -9,8 +9,12 @@ class RealtimeDispatcher {
     this.connectedGroupRefs = {};
     this.socketSessionId = socketSessionId;
 
-    this.events.on('realtime:subscribe-topic', (({ topic }, groupRef) => this.subscribeToTopic(topic, groupRef)));
-    this.events.on('realtime:unsubscribe-topic', (({ topic }, groupRef) => this.unsubscribeFromTopic(topic, groupRef)));
+    this.events.on("realtime:subscribe-topic", ({ topic }, groupRef) =>
+      this.subscribeToTopic(topic, groupRef)
+    );
+    this.events.on("realtime:unsubscribe-topic", ({ topic }, groupRef) =>
+      this.unsubscribeFromTopic(topic, groupRef)
+    );
   }
 
   setSocketSessionId(socketSessionId) {
@@ -30,7 +34,9 @@ class RealtimeDispatcher {
   }
 
   getConnectedChannel(topicName) {
-    return this.connectedChannels[topicName] || { refCounter: 0, channel: null };
+    return (
+      this.connectedChannels[topicName] || { refCounter: 0, channel: null }
+    );
   }
 
   incrementRefCounterForChannel(topicName) {
@@ -48,7 +54,7 @@ class RealtimeDispatcher {
   newChannelRef(topicName, channel) {
     this.connectedChannels[topicName] = {
       refCounter: 1,
-      channel: channel
+      channel: channel,
     };
   }
 
@@ -80,10 +86,10 @@ class RealtimeDispatcher {
 
     let group = this.getConnectedGroupRef(groupRef);
     if (group) {
-      group.topics.map(topic => {
+      group.topics.map((topic) => {
         // We give null for groupRef in this following function so that
         // the unsubscribe process does not change connectedGroupRefs
-        this.unsubscribeFromTopic(topic, null)
+        this.unsubscribeFromTopic(topic, null);
       });
       this.deleteConnectedGroupRef(groupRef);
     }
@@ -95,8 +101,16 @@ class RealtimeDispatcher {
 
   newConnectedGroupRef(groupRef, topicName) {
     this.connectedGroupRefs[groupRef] = {
-      topics: [topicName]
+      topics: [topicName],
     };
+  }
+
+  sendEventTopicJoined(topicName) {
+    this.events.emit(`${topicName}:joined`, { success: true });
+  }
+
+  sendEventTopicJoinError(topicName, error) {
+    this.events.emit(`${topicName}:joined`, { success: false, error });
   }
 
   removeTopicForConnectedGroupRef(groupRef, topicName) {
@@ -118,7 +132,7 @@ class RealtimeDispatcher {
       if (group.topics.length == 0) {
         console.log(`No more topic for groupRef ${groupRef}, deleting it`);
 
-        this.events.removeListener(`${groupRef}:stop`, function () { });
+        this.events.removeListener(`${groupRef}:stop`, function() {});
         this.deleteConnectedGroupRef(groupRef);
       }
     }
@@ -129,16 +143,30 @@ class RealtimeDispatcher {
 
     if (this.isSubscribedToChannel(topicName)) {
       this.incrementRefCounterForChannel(topicName);
+      this.sendEventTopicJoined(topicName);
       return this.getConnectedChannel(topicName).channel;
     } else {
       let channel = this.socket.channel(topicName, {});
+      const this_ = this;
 
-      channel.join()
-        .receive('ok', () => console.log(`realtime connected to ${topicName}`))
-        .receive('error', ({ reason }) => console.log(`failed join ${topicName}`, reason))
-        .receive('timeout', () => console.log(`Networking issue. Still waiting for topic ${topicName}`));
+      channel
+        .join()
+        .receive("ok", () => {
+          console.log(`realtime connected to ${topicName}`);
+          this_.sendEventTopicJoined(topicName);
+        })
+        .receive("error", ({ reason }) => {
+          console.log(`failed join ${topicName}`, reason);
+          this_.sendEventTopicJoinError(topicName, reason);
+        })
+        .receive("timeout", () => {
+          console.log(`Networking issue. Still waiting for topic ${topicName}`);
+          this_.sendEventTopicJoinError(topicName, "timeout");
+        });
 
-      channel.on('message', (messagePayload) => this.onMessage(topicName, messagePayload));
+      channel.on("message", (messagePayload) =>
+        this.onMessage(topicName, messagePayload)
+      );
 
       this.newChannelRef(topicName, channel);
 
@@ -151,7 +179,10 @@ class RealtimeDispatcher {
     this.decrementRefCounterForChannel(topicName);
 
     if (!this.isSubscribedToChannel(topicName)) {
-      this.unsubscribeFromChannel(this.getConnectedChannel(topicName).channel, groupRef);
+      this.unsubscribeFromChannel(
+        this.getConnectedChannel(topicName).channel,
+        groupRef
+      );
     }
   }
 
@@ -160,27 +191,29 @@ class RealtimeDispatcher {
       return;
     }
 
-    if (!callback) callback = () => {
-      console.log(`Left from channel ${channel.topic}`);
-      this.deleteChannelRef(channel.topic);
-    }
-    channel.leave().receive('ok', callback);
+    if (!callback)
+      callback = () => {
+        console.log(`Left from channel ${channel.topic}`);
+        this.deleteChannelRef(channel.topic);
+      };
+    channel.leave().receive("ok", callback);
   }
 
   onMessage(topic, messagePayload) {
-    const realTopic = topic == this.getSocketSessionTopic() ? "session:current-session" : topic;
+    const realTopic =
+      topic == this.getSocketSessionTopic() ? "session:current-session" : topic;
     console.log("RealtimeDispatcher#onMessage: ", realTopic, messagePayload);
     switch (messagePayload.type) {
-      case 'welcome':
+      case "welcome":
         break;
-      case 'notify':
+      case "notify":
         this.events.emit(realTopic, {
           metadata: messagePayload.metadata,
-          event: messagePayload.event
+          event: messagePayload.event,
         });
         break;
       default:
-        console.log('Unexpected realtime message: ', messagePayload.metadata);
+        console.log("Unexpected realtime message: ", messagePayload.metadata);
     }
   }
 }
